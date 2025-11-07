@@ -1,0 +1,111 @@
+/* Body & Tổng thể */
+body {
+    font-family: 'Inter', sans-serif;
+    margin: 0;
+    padding: 0;
+    background-color: #f2f2f2;
+    color: #333;
+}
+
+/* Header với ảnh nền + overlay */
+.home-header {
+    position: relative;
+    background-image: url('../images/nha3.jpg');
+    background-size: cover;
+    background-position: center;
+    text-align: center;
+    padding: 80px 20px; /* padding nội bộ cho chữ */
+    color: white;
+    overflow: hidden;
+    transition: margin-top 0.3s; /* mượt khi JS update margin-top */
+    z-index: 0;
+}
+
+.home-header::before {
+    content: "";
+    position: absolute;
+    top: 0; left: 0;
+    width: 100%; height: 100%;
+    background-color: rgba(0,0,0,0.4);
+    z-index: -1;
+}
+
+.home-header h1,
+.home-header p {
+    position: relative;
+    z-index: 1;
+}
+
+.home-header h1 {
+    font-size: 60px;
+    margin: 0;
+    letter-spacing: 3px;
+    text-shadow: 2px 2px 8px rgba(0,0,0,0.6);
+}
+
+.home-header p {
+    font-size: 20px;
+    margin-top: 10px;
+    font-weight: 500;
+    text-shadow: 1px 1px 6px rgba(0,0,0,0.6);
+}
+
+/* Main Content */
+.main-content {
+    max-width: 900px;
+    margin: 20px auto;
+    text-align: center;
+    padding: 20px;
+    transition: margin-top 0.3s; /* mượt khi JS update margin-top */
+}
+
+/* Intro Section */
+.intro {
+    background-color: rgba(255,255,255,0.95);
+    padding: 40px;
+    border-radius: 20px;
+    box-shadow: 0 8px 20px rgba(0,0,0,0.15);
+}
+
+.intro h2 {
+    font-size: 32px;
+    margin-bottom: 20px;
+    color: #007bff;
+}
+
+.intro p {
+    font-size: 18px;
+    line-height: 1.6;
+    margin-bottom: 30px;
+}
+
+/* Intro Image */
+.intro-image img {
+    width: 100%;
+    max-width: 800px;
+    height: auto;
+    border-radius: 20px;
+    box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+    transition: transform 0.5s, box-shadow 0.5s;
+}
+
+.intro-image img:hover {
+    transform: scale(1.05);
+    box-shadow: 0 15px 35px rgba(0,0,0,0.25);
+}
+
+/* Responsive */
+@media screen and (max-width: 768px) {
+    .home-header h1 {
+        font-size: 40px;
+    }
+    .home-header p {
+        font-size: 16px;
+    }
+    .intro h2 {
+        font-size: 26px;
+    }
+    .intro p {
+        font-size: 16px;
+    }
+}

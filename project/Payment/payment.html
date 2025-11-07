@@ -1,0 +1,364 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Hotel Manager - Payment</title>
+  <link rel="stylesheet" href="../Navbar/navbar.css" />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500&display=swap" rel="stylesheet" />
+  <style>
+    body {
+      font-family: "Inter", sans-serif;
+      margin: 0;
+      background: #f4f6f9;
+    }
+    .container {
+      max-width: 1000px;
+      margin: 40px auto;
+      padding: 20px;
+    }
+    h2 {
+      color: #007bff;
+      margin-bottom: 16px;
+      text-align: center;
+    }
+
+    .flex {
+      display: flex;
+      gap: 20px;
+      align-items: flex-start;
+      flex-wrap: wrap;
+    }
+
+    .left, .right {
+      background: white;
+      padding: 18px;
+      border-radius: 10px;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+    }
+    .left { flex: 1 1 420px; min-width: 320px; }
+    .right { width: 360px; }
+
+    .booking-item {
+      border-left: 4px solid #00bcd4;
+      padding: 10px 12px;
+      margin-bottom: 12px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 12px;
+    }
+    .booking-meta { font-size: 0.95rem; color: #333; }
+    .booking-meta b { color: #0b0f14; }
+
+    .btn {
+      padding: 8px 12px;
+      border: none;
+      border-radius: 8px;
+      cursor: pointer;
+      font-weight: 600;
+    }
+    .btn-pay { background: #28a745; color: white; }
+    .btn-pay:hover { background: #218838; }
+    .btn-secondary { background: #007bff; color: white; }
+    .btn-danger { background: #ff4d4d; color: white; }
+
+    .invoice {
+      display: none;
+      margin-top: 12px;
+    }
+    .invoice h3 { margin-top: 0; color: #333; }
+    .invoice-row { display:flex; justify-content:space-between; margin:8px 0; }
+    .invoice .total { font-size: 1.15rem; font-weight: 700; margin-top: 12px; text-align: right; }
+
+    label { display:block; margin-top:10px; font-weight:600; }
+    select, input[type="text"] {
+      width: 100%;
+      padding: 8px;
+      border-radius: 8px;
+      border: 1px solid #ccc;
+      margin-top:6px;
+      box-sizing: border-box;
+    }
+
+    .empty {
+      text-align: center;
+      padding: 30px 10px;
+      color: #666;
+      background: #fff;
+      border-radius: 10px;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.04);
+    }
+
+    @media (max-width: 900px) {
+      .flex { flex-direction: column; }
+      .right { width: 100%; }
+    }
+  </style>
+</head>
+<body>
+  <div id="navbar"></div>
+
+  <main class="main-content container">
+    <h2>💸 Thanh toán - Hotel Manager</h2>
+
+    <div class="flex">
+      <div class="left">
+        <h4>Đơn đặt phòng chờ thanh toán</h4>
+        <div id="bookingsList">
+          <!-- Danh sách booking sẽ được render ở đây -->
+        </div>
+      </div>
+
+      <div class="right">
+        <h4>Hóa đơn</h4>
+        <div id="invoiceBox" class="invoice">
+          <!-- Chi tiết hóa đơn sẽ hiện tại đây khi chọn booking -->
+          <h3>Hóa đơn thanh toán</h3>
+          <div class="invoice-details">
+            <div class="invoice-row"><div>Khách:</div><div id="invName"></div></div>
+            <div class="invoice-row"><div>Phòng:</div><div id="invRoom"></div></div>
+            <div class="invoice-row"><div>Ngày nhận:</div><div id="invCheckIn"></div></div>
+            <div class="invoice-row"><div>Ngày trả:</div><div id="invCheckOut"></div></div>
+            <div class="invoice-row"><div>Số ngày:</div><div id="invDays"></div></div>
+            <div class="invoice-row"><div>Giá/đêm:</div><div id="invPrice"></div></div>
+            <div class="invoice-row"><div>Số khách:</div><div id="invGuests"></div></div>
+            <div class="invoice-row"><div>Ghi chú đặt:</div><div id="invDate"></div></div>
+
+            <label for="method">Phương thức thanh toán</label>
+            <select id="method">
+              <option value="cash">Tiền mặt</option>
+              <option value="bank">Chuyển khoản</option>
+              <option value="card">Thẻ (mô phỏng)</option>
+            </select>
+
+            <div id="extraInfo" style="margin-top:10px;"></div>
+
+            <div class="total" id="invTotal"></div>
+
+            <div style="display:flex; gap:8px; margin-top:12px;">
+              <button id="confirmPayBtn" class="btn btn-pay">Xác nhận thanh toán</button>
+              <button id="cancelBtn" class="btn btn-secondary">Hủy</button>
+            </div>
+          </div>
+        </div>
+
+        <div id="noInvoice" class="empty" style="display:none;">
+          Chưa có hóa đơn được chọn.<br>
+          Vui lòng chọn một booking từ bên trái để xem hóa đơn.
+        </div>
+      </div>
+    </div>
+  </main>
+
+  <script src="../Navbar/navbar.js"></script>
+  <script>
+    // Load navbar
+    fetch("../Navbar/navbar.html")
+      .then(res => res.text())
+      .then(data => {
+        const topbar = document.getElementById("navbar");
+        topbar.innerHTML = data;
+        topbar.classList.add("topbar");
+      });
+
+    let bookings = JSON.parse(localStorage.getItem("bookings")) || [];
+    const bookingsList = document.getElementById("bookingsList");
+
+    const invoiceBox = document.getElementById("invoiceBox");
+    const noInvoice = document.getElementById("noInvoice");
+    const invName = document.getElementById("invName");
+    const invRoom = document.getElementById("invRoom");
+    const invCheckIn = document.getElementById("invCheckIn");
+    const invCheckOut = document.getElementById("invCheckOut");
+    const invDays = document.getElementById("invDays");
+    const invPrice = document.getElementById("invPrice");
+    const invGuests = document.getElementById("invGuests");
+    const invTotal = document.getElementById("invTotal");
+    const invDate = document.getElementById("invDate");
+    const methodSelect = document.getElementById("method");
+    const extraInfo = document.getElementById("extraInfo");
+    const confirmPayBtn = document.getElementById("confirmPayBtn");
+    const cancelBtn = document.getElementById("cancelBtn");
+
+    let currentBookingIndex = null;
+
+    function formatVN(num) {
+      return Number(num).toLocaleString() + "₫";
+    }
+
+    function daysBetween(a, b) {
+      const diff = (new Date(b) - new Date(a)) / (1000*3600*24);
+      return Math.round(diff);
+    }
+
+    function renderBookings() {
+      bookingsList.innerHTML = "";
+      if (bookings.length === 0) {
+        bookingsList.innerHTML = '<div class="empty">Hiện không có booking chờ thanh toán.</div>';
+        showInvoice(null);
+        return;
+      }
+
+      bookings.forEach((b, idx) => {
+        // calculate days & price per night (if possible)
+        const soNgay = daysBetween(b.checkIn, b.checkOut);
+        let giaDem = soNgay > 0 ? Math.round((b.total || 0) / soNgay) : 0;
+
+        const div = document.createElement("div");
+        div.className = "booking-item";
+        div.innerHTML = `
+          <div>
+            <div class="booking-meta"><b>${b.customerName}</b></div>
+            <div class="booking-meta">Phòng: <b>${b.roomName}</b> • ${soNgay} đêm</div>
+            <div class="booking-meta">Tổng: <b>${formatVN(b.total || 0)}</b></div>
+          </div>
+          <div>
+            <button class="btn btn-pay" data-idx="${idx}">Thanh toán</button>
+          </div>
+        `;
+        bookingsList.appendChild(div);
+      });
+
+      // add event listeners
+      document.querySelectorAll(".booking-item .btn-pay").forEach(btn => {
+        btn.addEventListener("click", (e) => {
+          const idx = parseInt(e.currentTarget.dataset.idx);
+          openInvoice(idx);
+        });
+      });
+    }
+
+    function openInvoice(idx) {
+      currentBookingIndex = idx;
+      const b = bookings[idx];
+      if (!b) return;
+      showInvoice(b);
+    }
+
+    function showInvoice(b) {
+      if (!b) {
+        invoiceBox.style.display = "none";
+        noInvoice.style.display = "block";
+        return;
+      }
+      noInvoice.style.display = "none";
+      invoiceBox.style.display = "block";
+
+      const soNgay = daysBetween(b.checkIn, b.checkOut);
+      const giaDem = soNgay > 0 ? Math.round((b.total || 0) / soNgay) : 0;
+
+      invName.textContent = b.customerName;
+      invRoom.textContent = b.roomName;
+      invCheckIn.textContent = b.checkIn;
+      invCheckOut.textContent = b.checkOut;
+      invDays.textContent = soNgay;
+      invPrice.textContent = formatVN(giaDem) + " / đêm";
+      invGuests.textContent = (b.guests || "-");
+      invTotal.textContent = "Tổng cần thanh toán: " + formatVN(b.total || 0);
+      invDate.textContent = b.date || "-";
+
+      // reset method & extra info
+      methodSelect.value = "cash";
+      renderExtraInfo("cash");
+    }
+
+    function renderExtraInfo(method) {
+      if (method === "bank") {
+        extraInfo.innerHTML = `
+          <div style="font-size:0.95rem;">
+            <div>Chuyển khoản tới:</div>
+            <div style="margin-top:6px;">
+              <div><b>Ngân hàng:</b> Ngân hàng ABC</div>
+              <div><b>Số TK:</b> 123456789</div>
+              <div><b>Chủ TK:</b> Công ty Hotel Manager</div>
+            </div>
+            <div style="margin-top:8px; font-style: italic; color:#666;">(Ghi nội dung: tên khách - ${new Date().getFullYear()})</div>
+          </div>
+        `;
+      } else if (method === "card") {
+        extraInfo.innerHTML = `
+          <div>
+            <div style="margin-bottom:6px;">Mô phỏng thanh toán thẻ:</div>
+            <input id="cardNumber" type="text" placeholder="Số thẻ (mô phỏng)" />
+            <input id="cardName" type="text" placeholder="Tên in trên thẻ" style="margin-top:8px;" />
+          </div>
+        `;
+      } else {
+        extraInfo.innerHTML = `<div style="color:#444; font-size:0.95rem;">Thanh toán tiền mặt khi nhận phòng hoặc tại quầy.</div>`;
+      }
+    }
+
+    methodSelect.addEventListener("change", (e) => {
+      renderExtraInfo(e.target.value);
+    });
+
+    confirmPayBtn.addEventListener("click", () => {
+      if (currentBookingIndex === null) {
+        alert("Vui lòng chọn booking để thanh toán.");
+        return;
+      }
+      const booking = bookings[currentBookingIndex];
+      if (!booking) {
+        alert("Booking không hợp lệ.");
+        return;
+      }
+
+      // Simple validation for card when selected
+      const method = methodSelect.value;
+      if (method === "card") {
+        const cn = document.getElementById("cardNumber");
+        const cnam = document.getElementById("cardName");
+        if (!cn || !cn.value.trim() || !cnam || !cnam.value.trim()) {
+          alert("Vui lòng điền thông tin thẻ (mô phỏng).");
+          return;
+        }
+      }
+
+      // Prepare object theo cấu trúc revenue.html cần:
+      const soNgay = daysBetween(booking.checkIn, booking.checkOut);
+      const gia = soNgay > 0 ? Math.round((booking.total || 0) / soNgay) : (booking.total || 0);
+
+      const paymentRecord = {
+        tenKhach: booking.customerName,
+        tenPhong: booking.roomName,
+        ngayDen: booking.checkIn,
+        ngayDi: booking.checkOut,
+        soNgay: soNgay,
+        gia: gia,
+        phuongThuc: method,
+        thanhToanLuc: new Date().toLocaleString()
+      };
+
+      // Lưu vào localStorage.payments
+      const payments = JSON.parse(localStorage.getItem("payments")) || [];
+      payments.push(paymentRecord);
+      localStorage.setItem("payments", JSON.stringify(payments));
+
+      // Xóa booking khỏi bookings (đã thanh toán)
+      bookings.splice(currentBookingIndex, 1);
+      localStorage.setItem("bookings", JSON.stringify(bookings));
+
+      // 🔹 Cập nhật trạng thái phòng về "Trống"
+      let rooms = JSON.parse(localStorage.getItem("roomsData")) || [];
+      const roomToFree = rooms.find(r => r.name === booking.roomName);
+      if (roomToFree) {
+        roomToFree.status = "Available";
+        localStorage.setItem("roomsData", JSON.stringify(rooms));
+      }
+
+      alert("✅ Thanh toán thành công! Phòng đã được trả về trạng thái trống.");
+      // Chuyển qua trang doanh thu để kiểm tra
+      window.location.href = "../Revenue/revenue.html";
+    });
+
+    cancelBtn.addEventListener("click", () => {
+      currentBookingIndex = null;
+      showInvoice(null);
+    });
+
+    // render lần đầu
+    renderBookings();
+  </script>
+</body>
+</html>

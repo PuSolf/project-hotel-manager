@@ -1,0 +1,178 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Hotel Manager - Booking</title>
+  <link rel="stylesheet" href="../Navbar/navbar.css">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500&display=swap" rel="stylesheet" />
+  <style>
+    body {
+      font-family: "Inter", sans-serif;
+      margin: 0;
+      background: #f4f6f9;
+    }
+    .container {
+      max-width: 600px;
+      margin: 40px auto;
+      background: white;
+      padding: 25px;
+      border-radius: 10px;
+      box-shadow: 0 2px 6px rgba(0,0,0,0.1);
+      text-align: center;
+    }
+    h2 {
+      color: #007bff;
+      text-align: center;
+      text-transform: uppercase;
+    }
+    form {
+      display: flex;
+      flex-direction: column;
+      gap: 15px;
+    }
+    input {
+      padding: 10px;
+      border-radius: 8px;
+      border: 1px solid #ccc;
+      font-size: 1rem;
+    }
+    button {
+      padding: 12px;
+      background: #007bff;
+      color: white;
+      border: none;
+      border-radius: 8px;
+      font-size: 1rem;
+      cursor: pointer;
+      transition: 0.3s;
+    }
+    button:hover { background: #0056b3; }
+    .room-info {
+      margin-bottom: 20px;
+      padding: 10px;
+      border-left: 5px solid #00bcd4;
+      background: #f9f9f9;
+      text-align: left;
+    }
+    .select-room-btn {
+      background: #00bcd4;
+      margin-top: 10px;
+    }
+    .select-room-btn:hover {
+      background: #0097a7;
+    }
+  </style>
+</head>
+<body>
+  <div id="navbar"></div>
+
+  <main class="main-content">
+    <div class="container">
+      <h2>Thông tin đặt phòng</h2>
+      <div id="roomInfo" class="room-info"></div>
+
+      <form id="bookingForm" style="display: none;">
+        <input type="text" id="customerName" placeholder="Họ và tên" required>
+        <input type="date" id="checkIn" required>
+        <input type="date" id="checkOut" required>
+        <input type="number" id="guests" placeholder="Số người" required min="1">
+        <button type="submit">Xác nhận đặt phòng</button>
+      </form>
+
+      <button id="selectRoomBtn" class="select-room-btn" style="display: none;">
+        🔍 Đến chọn phòng
+      </button>
+    </div>
+  </main>
+
+<script src="../Navbar/navbar.js"></script>
+<script>
+  // Load navbar
+  fetch("../Navbar/navbar.html")
+    .then(res => res.text())
+    .then(data => {
+      const topbar = document.getElementById("navbar");
+      topbar.innerHTML = data;
+      topbar.classList.add("topbar");
+    });
+
+  // Booking logic
+  const room = JSON.parse(localStorage.getItem("selectedRoom"));
+  const roomInfoDiv = document.getElementById("roomInfo");
+  const form = document.getElementById("bookingForm");
+  const selectRoomBtn = document.getElementById("selectRoomBtn");
+
+  if (!room) {
+    roomInfoDiv.innerHTML = "<p>Bạn chưa chọn phòng nào.</p>";
+    selectRoomBtn.style.display = "inline-block";
+
+    selectRoomBtn.addEventListener("click", () => {
+      window.location.href = "../Rooms/rooms.html";
+    });
+  } else {
+    form.style.display = "flex";
+    roomInfoDiv.innerHTML = `
+      <p><b>Phòng:</b> ${room.name}</p>
+      <p><b>Loại:</b> ${room.type}</p>
+      <p><b>Giá:</b> ${room.price.toLocaleString()}₫ / đêm</p>
+    `;
+  }
+
+  form.addEventListener("submit", (e) => {
+    e.preventDefault();
+
+    const nameInput = document.getElementById("customerName");
+    const checkInInput = document.getElementById("checkIn");
+    const checkOutInput = document.getElementById("checkOut");
+    const guestsInput = document.getElementById("guests");
+
+    const name = nameInput.value.trim();
+    const checkInDate = new Date(checkInInput.value);
+    const checkOutDate = new Date(checkOutInput.value);
+    const guests = parseInt(guestsInput.value);
+
+    if (!name || !checkInInput.value || !checkOutInput.value || !guests) {
+      alert("Vui lòng điền đủ thông tin!");
+      return;
+    }
+
+    const diffDays = (checkOutDate - checkInDate) / (1000 * 3600 * 24);
+    if (diffDays <= 0) {
+      alert("Ngày trả phòng phải sau ngày nhận phòng!");
+      return;
+    }
+
+    const total = diffDays * room.price;
+    const booking = {
+      customerName: name,
+      roomName: room.name,
+      checkIn: checkInInput.value,
+      checkOut: checkOutInput.value,
+      guests,
+      total,
+      date: new Date().toLocaleString()
+    };
+
+    // Lưu danh sách đặt phòng
+    let bookings = JSON.parse(localStorage.getItem("bookings")) || [];
+    bookings.push(booking);
+    localStorage.setItem("bookings", JSON.stringify(bookings));
+
+    // ✅ Cập nhật trạng thái phòng đã thuê
+    let allRooms = JSON.parse(localStorage.getItem("roomsData")) || [];
+    const idx = allRooms.findIndex(r => r.id === room.id);
+    if (idx !== -1) {
+      allRooms[idx].status = "Booked";
+      localStorage.setItem("roomsData", JSON.stringify(allRooms));
+    }
+
+    // ✅ Xóa phòng đang chọn (đã thuê rồi thì không cần giữ nữa)
+    localStorage.removeItem("selectedRoom");
+
+    alert(`✅ Đặt phòng thành công!\nTổng tiền: ${total.toLocaleString()}₫`);
+    window.location.href = "../Payment/payment.html";
+  });
+</script>
+</body>
+</html>

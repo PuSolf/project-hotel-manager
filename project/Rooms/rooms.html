@@ -1,0 +1,270 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Hotel Manager - Rooms</title>
+  <link rel="stylesheet" href="../Navbar/navbar.css">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500&display=swap" rel="stylesheet">
+  <style>
+    body {
+      font-family: "Inter", sans-serif;
+      margin: 0;
+      color: #333;
+      background-size: cover;
+      background-position: center;
+      background-repeat: no-repeat;
+      transition: background-image 1s ease-in-out;
+    }
+
+    .main-content {
+      max-width: 1200px;
+      margin: 40px auto;
+      padding: 0 20px;
+      padding-top: 80px;
+      
+    }
+
+    h1 {
+      text-align: center;
+      color: #007bff;
+      margin-bottom: 25px;
+    }
+
+    .search-bar {
+      display: flex;
+      justify-content: flex-end;
+      margin-bottom: 20px;
+    }
+
+    .search-bar input {
+      padding: 10px 15px;
+      width: 260px;
+      border-radius: 8px;
+      border: 1px solid #ccc;
+      font-size: 1rem;
+    }
+
+    .search-bar button {
+      margin-left: 8px;
+      padding: 10px 18px;
+      background: #007bff;
+      color: white;
+      border: none;
+      border-radius: 8px;
+      cursor: pointer;
+      transition: 0.3s;
+    }
+
+    .search-bar button:hover {
+      background: #0056b3;
+    }
+
+    .room-list {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+      gap: 25px;
+    }
+
+    .room-card {
+      background: white;
+      border-radius: 12px;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+      transition: all 0.3s ease;
+      overflow: hidden;
+      display: flex;
+      flex-direction: column;
+    }
+
+    .room-card:hover {
+      transform: translateY(-4px);
+    }
+
+    .room-card img {
+      width: 100%;
+      height: 160px;
+      object-fit: cover;
+    }
+
+    .room-info {
+      padding: 15px;
+      flex-grow: 1;
+    }
+
+    .room-info h3 {
+      margin: 0 0 5px;
+      color: #0b0f14;
+    }
+
+    .room-info p {
+      margin: 4px 0;
+      font-size: 0.95rem;
+    }
+
+    .price {
+      color: #222;
+      font-weight: 600;
+    }
+
+    .status {
+      font-weight: 600;
+    }
+
+    .status.available { color: green; }
+    .status.booked { color: red; }
+
+    .room-card button {
+      margin: 15px;
+      padding: 10px;
+      background: #337aca;
+      color: white;
+      border: none;
+      border-radius: 8px;
+      cursor: pointer;
+      transition: 0.3s;
+    }
+
+    .room-card button:hover:not(:disabled) {
+      background: #0056b3;
+    }
+
+    .room-card button:disabled {
+      background: #ccc;
+      cursor: not-allowed;
+    }
+  </style>
+</head>
+
+<body>
+  <div id="navbar"></div>
+
+  <main class="main-content">
+    <h1>Danh sách phòng</h1>
+
+    <div class="search-bar">
+      <input id="searchInput" type="text" placeholder="Tìm kiếm phòng (VD: VIP, Deluxe...)" />
+      <button onclick="filterRooms()">Tìm kiếm</button>
+    </div>
+
+    <div class="room-list" id="roomList"></div>
+  </main>
+
+  <script src="../Navbar/navbar.js"></script>
+
+<script>
+  fetch("../Navbar/navbar.html")
+    .then(res => res.text())
+    .then(data => {
+      const topbar = document.getElementById("navbar");
+      topbar.innerHTML = data;
+      topbar.classList.add("topbar");
+    });
+
+  // ====== DANH SÁCH PHÒNG GỐC ======
+  const defaultRooms = [
+    { id: 1, name: "Room 101", type: "Standard", price: 350000, status: "Available", image: "https://acihome.vn/uploads/15/mau-thiet-ke-noi-that-phong-2-giuong-don-ben-trong-khach-san-3-4-5-sao-2.JPG" },
+    { id: 2, name: "Room 201", type: "VIP", price: 600000, status: "Available", image: "https://img.homedy.com/store/images/2020/04/15/phong-ngu-khach-san-5-sao-637225597309796831.jpg" },
+    { id: 3, name: "Room 301", type: "Suite", price: 850000, status: "Available", image: "https://images.pexels.com/photos/53577/hotel-architectural-tourism-travel-53577.jpeg" },
+    { id: 4, name: "Room 401", type: "Deluxe", price: 700000, status: "Available", image: "https://images.unsplash.com/photo-1590490360182-c33d57733427" },
+    { id: 5, name: "Room 501", type: "Suite", price: 950000, status: "Available", image: "https://studiochupanhdep.com/Upload/Images/Album/anh-phong-khach-san-dep-04.jpg" },
+    { id: 6, name: "Room 601", type: "Standard", price: 320000, status: "Available", image: "https://fpt123.net/uploads/images/tran-thach-cao/Tran-thach-cao-phong-khach-nha-ong-2.jpg" },
+    { id: 7, name: "Room 701", type: "VIP", price: 650000, status: "Available", image: "https://hoangsonpeacehotel.com.vn/FileUpload/Images/0080hdr3_4.jpg" },
+    { id: 8, name: "Room 801", type: "Deluxe", price: 780000, status: "Available", image: "https://png.pngtree.com/background/20220720/original/pngtree-hotel-duplex-room-hd-live-shooting-log-simple-furniture-picture-image_1685095.jpg" },
+    { id: 9, name: "Room 901", type: "Suite", price: 1050000, status: "Available", image: "https://kconceptvn.com/wp-content/uploads/2020/04/hotel-photography-chup-anh-khach-san-khach-san-bamboo-sapa-hotel-18-1024x683.jpg" }
+  ];
+
+  // ====== LẤY DỮ LIỆU TỪ localStorage HOẶC TẠO MỚI ======
+  let rooms = JSON.parse(localStorage.getItem("roomsData")) || defaultRooms;
+
+  // Cập nhật lại dữ liệu nếu localStorage chưa khởi tạo
+  localStorage.setItem("roomsData", JSON.stringify(rooms));
+
+  const list = document.getElementById("roomList");
+
+  function displayRooms(filteredRooms = rooms) {
+    list.innerHTML = filteredRooms.map(r => `
+      <div class="room-card">
+        <img src="${r.image}" alt="${r.name}">
+        <div class="room-info">
+          <h3>${r.name}</h3>
+          <p>Loại phòng: <b>${r.type}</b></p>
+          <p>Giá: <span class="price">${r.price.toLocaleString()}₫/đêm</span></p>
+          <p>Trạng thái: 
+            <span class="status ${r.status === "Available" ? "available" : "booked"}">
+              ${r.status === "Available" ? "Trống" : "Đã đặt"}
+            </span>
+          </p>
+        </div>
+        <button class="select-room" data-id="${r.id}" ${r.status !== "Available" ? "disabled" : ""}>
+          ${r.status === "Available" ? "Chọn phòng" : "Không khả dụng"}
+        </button>
+      </div>
+    `).join("");
+
+    // Khi bấm "Chọn phòng"
+    document.querySelectorAll(".select-room").forEach(btn => {
+      btn.addEventListener("click", e => {
+        const id = e.target.dataset.id;
+        const selectedRoom = rooms.find(r => r.id == id);
+        if (selectedRoom) {
+          selectedRoom.status = "Booked"; // cập nhật ngay
+          localStorage.setItem("selectedRoom", JSON.stringify(selectedRoom));
+          localStorage.setItem("roomsData", JSON.stringify(rooms));
+          alert(`✅ Bạn đã chọn ${selectedRoom.name}`);
+          window.location.href = "../Booking/booking.html";
+        }
+      });
+    });
+  }
+
+  function filterRooms() {
+    const keyword = document.getElementById("searchInput").value.trim().toLowerCase();
+    const filtered = rooms.filter(r =>
+      r.type.toLowerCase().includes(keyword) || r.name.toLowerCase().includes(keyword)
+    );
+    displayRooms(filtered);
+  }
+
+  displayRooms();
+
+  // Hỗ trợ tìm nhanh
+  document.getElementById("searchInput").addEventListener("keypress", function(e) {
+    if (e.key === "Enter") {
+      e.preventDefault();
+      filterRooms();
+    }
+  });
+
+  document.addEventListener("keydown", function(e) {
+    if (e.altKey && e.key.toLowerCase() === "s") {
+      e.preventDefault();
+      const searchBox = document.getElementById("searchInput");
+      searchBox.focus();
+      searchBox.select();
+    }
+
+    if (e.ctrlKey && e.key.toLowerCase() === "f") {
+      e.preventDefault();
+      filterRooms();
+    }
+  });
+
+  // ====== HÌNH NỀN TỰ CHUYỂN ======
+  const backgrounds = [
+    "https://wallpaperaccess.com/full/2690586.jpg",
+    "https://images.unsplash.com/photo-1590490360182-c33d57733427",
+    "https://booking.muongthanh.com/images/hotels/hotels/original/muong-thanh-quang-ninh-1_1660547103.jpg"
+  ];
+
+  let currentBg = 0;
+  document.body.style.backgroundImage = `url('${backgrounds[currentBg]}')`;
+
+  function changeBackground() {
+    currentBg = (currentBg + 1) % backgrounds.length;
+    document.body.style.backgroundImage = `url('${backgrounds[currentBg]}')`;
+  }
+
+  setInterval(changeBackground, 10000);
+</script>
+</body>
+</html>
