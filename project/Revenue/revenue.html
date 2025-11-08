@@ -1,0 +1,110 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Hotel Manager - Revenue</title>
+  <link rel="stylesheet" href="../Navbar/navbar.css">
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      margin: 0;
+      background: #f5f5f5;
+    }
+    .container {
+      margin: 80px auto;
+      width: 90%;
+      max-width: 900px;
+      background: white;
+      padding: 20px;
+      border-radius: 8px;
+      box-shadow: 0 0 8px rgba(0,0,0,0.1);
+    }
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-top: 20px;
+    }
+    th, td {
+      border: 1px solid #ccc;
+      padding: 8px;
+      text-align: left;
+    }
+    th {
+      background-color: #007bff;
+      color: white;
+    }
+    .total {
+      text-align: right;
+      font-weight: bold;
+      font-size: 1.1em;
+      margin-top: 20px;
+    }
+  </style>
+</head>
+<body>
+  <!-- Navbar dùng chung -->
+  <div id="navbar"></div>
+
+  <!-- Nội dung chính -->
+  <main class="main-content">
+    <div class="container">
+      <h2>📊 Doanh thu khách sạn</h2>
+      <table id="revenueTable">
+        <thead>
+          <tr>
+            <th>Tên khách</th>
+            <th>Phòng</th>
+            <th>Ngày đến</th>
+            <th>Ngày đi</th>
+            <th>Số ngày</th>
+            <th>Giá/đêm</th>
+            <th>Thành tiền</th>
+          </tr>
+        </thead>
+        <tbody></tbody>
+      </table>
+      <div class="total" id="totalRevenue">Tổng doanh thu: 0 VNĐ</div>
+    </div>
+  </main>
+
+  <script src="../Navbar/navbar.js"></script>
+  <script>
+    // Tải navbar.html vào trang
+    fetch("../Navbar/navbar.html")
+      .then(res => res.text())
+      .then(data => {
+        const topbar = document.getElementById("navbar");
+        topbar.innerHTML = data;
+        topbar.classList.add("topbar");
+      });
+
+    // Lấy dữ liệu thanh toán từ localStorage
+    const payments = JSON.parse(localStorage.getItem("payments")) || [];
+
+    const tableBody = document.querySelector("#revenueTable tbody");
+    const totalRevenueEl = document.getElementById("totalRevenue");
+
+    let total = 0;
+
+    payments.forEach(p => {
+      const tr = document.createElement("tr");
+      const thanhTien = p.soNgay * p.gia;
+      total += thanhTien;
+
+      tr.innerHTML = `
+        <td>${p.tenKhach}</td>
+        <td>${p.tenPhong}</td>
+        <td>${p.ngayDen}</td>
+        <td>${p.ngayDi}</td>
+        <td>${p.soNgay}</td>
+        <td>${p.gia.toLocaleString()} VNĐ</td>
+        <td>${thanhTien.toLocaleString()} VNĐ</td>
+      `;
+      tableBody.appendChild(tr);
+    });
+
+    totalRevenueEl.textContent = `Tổng doanh thu: ${total.toLocaleString()} VNĐ`;
+  </script>
+</body>
+</html>

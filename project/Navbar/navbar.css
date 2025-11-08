@@ -1,0 +1,127 @@
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+    font-family: Arial, sans-serif;
+}
+
+body {
+  padding-top: 60px;
+  font-family: 'Segoe UI', sans-serif;
+}
+
+.topbar {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  background: #007bff;
+  color: white;
+  padding: 10px 20px;
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  z-index: 999;
+  box-shadow: 0 2px 6px rgba(0,0,0,0.1);
+}
+
+.logo {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+.logo img {
+    height: 40px;
+    width: 40px;
+    border-radius: 50%;
+    object-fit: cover;
+}
+.logo span {
+    font-weight: bold;
+    font-size: 25px;
+    letter-spacing: 0.5px;
+}
+
+.topbar .menu {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.topbar .menu a {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 120px;
+  padding: 8px 12px;
+  font-weight: 600;
+  font-size: 1rem;
+  color: white;
+  text-decoration: none;
+  border-radius: 6px;
+  transition: background 0.2s;
+}
+
+.topbar .menu a:hover {
+  background: rgba(255, 255, 255, 0.2);
+}
+
+.topbar .menu .logout {
+  margin-left: 26px;
+  background: #ff4d4d;
+  color: white;
+  font-weight: bold;
+  padding: 8px 14px;
+  border-radius: 6px;
+  font-size: 1rem;
+}
+
+.topbar .menu .logout:hover {
+  background: #dd0d0d;
+}
+
+.hamburger {
+  display: none;
+  font-size: 1.8rem;
+  cursor: pointer;
+  color: white;
+}
+
+@media (max-width: 1000px) {
+  .topbar {
+    flex-wrap: wrap;
+  }
+
+  .topbar .menu {
+    display: none;
+    flex-direction: column;
+    position: absolute;
+    top: 60px;
+    right: 0;
+    background: #007bff;
+    width: 100%;
+    padding: 10px 0;
+    border-radius: 0 0 8px 8px;
+  }
+
+  .topbar .menu.show {
+    display: flex;
+  }
+
+  .hamburger {
+    display: block;
+  }
+
+  .topbar .menu a {
+    width: 100%;
+    justify-content: flex-start;
+    padding: 12px 20px;
+  }
+
+  .topbar .menu .logout {
+    margin-left: 0;
+    margin-top: 10px;
+    text-align: center;
+  }
+}
